@@ -24,23 +24,36 @@ if (!isset($gCms)) exit;
     $taboptarray = array('mysql' => 'TYPE=MyISAM');
 		$dict = NewDataDictionary($db);
 		
-        // table schema description
-    $flds = array(
-			'id I KEY AUTO',
-			'created_at DT',
-    	'updated_at DT',
-			'module_name C(255)',
-			'module_order_id C(255)',
-			'module_amount I',
-			'currency C(255)',
-			'status C(255)',
-			);
+    // table schema description
+      //     $flds = array(
+      // 'id I KEY AUTO',
+      // 'created_at DT',
+      //      'updated_at DT',
+      //      
+      // 'module_name C(255)',
+      // 'module_order_id C(255)',
+      // 
+      // 'amount I',
+      // 'currency C(3)',
+      // 'language C(5)',
+      // 'cn C(35)',
+      // 'email C(50)',
+      // 'ownerzip C(10)',
+      // 'owneraddress C(35)',
+      // 'ownercty C(2)',
+      // 'ownertown C(40)',
+      // 'ownertelno C(30)',      
+      // 
+      // 'status C(255)'
+      // );
 
+    $flds = OgoneTransaction::$db_schema;
+    
 		// create it. This should do error checking, but I'm a lazy sod.
-		$sqlarray = $dict->CreateTableSQL(cms_db_prefix()."module_ogone_transactions",
+		$sqlarray = $dict->CreateTableSQL(cms_db_prefix().OgoneTransaction::DB_NAME,
 				implode(',',$flds), $taboptarray);
 		$dict->ExecuteSQLArray($sqlarray);
-		$sql = $dict->CreateIndexSQL('module_ogone_transactions_index', cms_db_prefix() . 'module_ogone_transactions', 'id, module_name,module_order_id');
+		$sql = $dict->CreateIndexSQL('module_ogone_transactions_index', cms_db_prefix() . OgoneTransaction::DB_NAME, 'id, module_name,module_order_id');
     $dict->ExecuteSQLArray($sql);		
 		
 		// permissions

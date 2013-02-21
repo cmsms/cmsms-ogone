@@ -34,7 +34,7 @@ class Ogone extends CMSModule
   public function VisibleToAdminUser()    {   return $this->CheckAccess();          }
   public function CheckAccess($perm = 'Manage Ogone')  {  return $this->CheckPermission($perm);  }
 
-  public function GetDependencies()      {  return array();  }
+  public function GetDependencies()      {  return array('CMSForms' => '1.0.7');  }
   public function MinimumCMSVersion()    {  return "1.10";  }
 
   // public function InstallPostMessage()    { return $this->Lang('postinstall');  }

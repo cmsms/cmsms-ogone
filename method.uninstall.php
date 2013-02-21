@@ -11,7 +11,7 @@ $db =& cms_utils::get_db();
 	
 // remove the database table
 $dict = NewDataDictionary( $db );
-$sqlarray = $dict->DropTableSQL( cms_db_prefix() . 'module_ogone_transactions' );
+$sqlarray = $dict->DropTableSQL( cms_db_prefix() . OgoneTransaction::DB_NAME );
 $dict->ExecuteSQLArray($sqlarray);
 
 $this->RemovePermission();

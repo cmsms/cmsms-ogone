@@ -28,7 +28,7 @@ if($form->isPosted())
 }
 
 
-echo hash('sha512', 'TEST');
+// echo hash('sha512', 'TEST');
 
 echo $form->render();
 ?>
