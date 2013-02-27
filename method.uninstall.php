@@ -16,6 +16,7 @@ $dict->ExecuteSQLArray($sqlarray);
 
 $this->RemovePermission();
 $this->RemovePreference();
+$this->RemoveEvent();
 
 
 $this->Audit( 0, $this->GetFriendlyName(), $this->Lang('uninstalled'));

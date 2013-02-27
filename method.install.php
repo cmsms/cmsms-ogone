@@ -76,10 +76,6 @@ if (!isset($gCms)) exit;
 		
 		// EVENTS		
 		$this->CreateEvent('OrderStatusChange');
-		//$this->CreateEvent('CronDaily');
-		//$this->CreateEvent('CronWeekly');
-		//$this->CreateEvent('CronMonthly');
-		//$this->CreateEvent('CronYearly');
 
 		// put mention into the admin log
 		$this->Audit( 0, $this->Lang('friendlyname'), $this->Lang('installed',$this->GetVersion()));

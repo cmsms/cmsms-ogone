@@ -5,6 +5,9 @@ class OgoneTransaction {
   protected $id; // ORDERID in Ogone
   protected $created_at;
   protected $udpated_at;
+  private $sha_in;
+  private $sha_out;
+  private $algorithm = 'sha1';
   
   protected $vars = array();
   protected $is_modified;
@@ -17,7 +20,8 @@ class OgoneTransaction {
     'general' => array('PSPID', 'ORDERID', 'AMOUNT', 'CURRENCY', 'LANGUAGE', 'CN', 'EMAIL', 'OWNERZIP', 'OWNERADDRESS', 'OWNERCTY', 'OWNERTOWN', 'OWNERTELNO'),
     'security' => array('SHASIGN'),
     'layout' => array('TITLE', 'BGCOLOR', 'TXTCOLOR', 'TBLBGCOLOR', 'TBLTXTCOLOR', 'BUTTONBGCOLOR', 'BUTTONTXTCOLOR', 'LOGO', 'FONTTYPE'),
-    'post_payment' => array('ACCEPTURL', 'DECLINEURL', 'EXCEPTIONURL', 'CANCELURL')
+    'post_payment' => array('ACCEPTURL', 'DECLINEURL', 'EXCEPTIONURL', 'CANCELURL'),
+    'extra' => array('CARDNO')
   );
   
   private static $fields = array(
@@ -33,8 +37,11 @@ class OgoneTransaction {
     'ownercty',
     'ownertown',
     'ownertelno',
-    'status'
+    'status',
+    'ogone_feedback'
   );
+  
+  private $form_fields;
   
   const DB_NAME = 'module_ogone_transactions';
   
@@ -57,7 +64,45 @@ class OgoneTransaction {
     'ownertown C(40)',
     'ownertelno C(30)',			
     
-    'status C(255)'
+    'status C(255)',
+    'ogone_feedback X'
+  );
+  
+  public static $error_codes = array(
+    0 => 'Incomplete or invalid',
+    1 => 'Cancelled by client',
+    2 => 'Authorisation refused',
+    4 => 'Order stored',
+    41 => 'Waiting client payment',
+    5 => 'Authorised',
+    51 => 'Authorisation waiting',
+    52 => 'Authorisation not known',
+    59 => 'Author. to get manually',
+    6 => 'Authorised and canceled',
+    61 => 'Author. deletion waiting',
+    62 => 'Author. deletion uncertain',
+    63 => 'Author. deletion refused',
+    7 => 'Payment deleted',
+    71 => 'Payment deletion pending',
+    72 => 'Payment deletion uncertain',
+    73 => 'Payment deletion refused',
+    74 => 'Payment deleted (not accepted)',
+    75 => 'Deletion processed by merchant',
+    8 => 'Refund',
+    81 => 'Refund pending',
+    82 => 'Refund uncertain',
+    83 => 'Refund refused',
+    84 => 'Payment declined by the acquirer (will be debited)',
+    85 => 'Refund processed by merchant',
+    9 => 'Payment requested',
+    91 => 'Payment processing',
+    92 => 'Payment uncertain',
+    93 => 'Payment refused',
+    94 => 'Refund declined by the acquirer',
+    95 => 'Payment processed by merchant',
+    97 => 'Being processed (intermediate technical status)',
+    98 => 'Being processed (intermediate technical status)',
+    99 => 'Being processed (intermediate technical status)'
   );
   
   public function __set($var, $val) {
@@ -86,6 +131,177 @@ class OgoneTransaction {
       echo 'Error: ',  $e->getMessage(), "\n";
     }
   }
+  
+  // FUNCTIONNALITIES
+  
+  public function setShaIn($sha_in)
+  {
+    $this->sha_in = $sha_in;
+  }
+
+  public function setShaOut($sha_out)
+  {
+    $this->sha_out = $sha_out;
+  }
+  
+  public function setAlgorithm($algorithm)
+  {
+    switch($algorithm)
+    {
+      case 'sha512':
+        $this->algorithm = 'sha512';
+        break;
+      case 'sha256':
+        $this->algorithm = 'sha256';
+        break;
+      default:
+        $this->algorithm = 'sha1';
+        break;
+    }
+  }
+  
+  public function getOrderId()
+  {
+    return $this->id;
+  }
+  
+  public static function prepareTransaction($module_name, $module_order_id, $amount, $currency = 'EUR', $language = 'en_US')
+  {
+    $transaction = new self();
+    
+    $transaction->module_name = $module_name;
+    $transaction->module_order_id = $module_order_id;
+    $transaction->amount = $amount;
+    $transaction->currency = $currency;
+    $transaction->language = $language;
+    
+    $transaction->status = 'initialized';
+    
+    $transaction->save();
+    
+    return $transaction;
+  }
+  
+  public function prepareForm(&$form)
+  {
+    $this->prepareFields();
+    
+    foreach($this->form_fields as $name => $value)
+    {
+      $form->setWidget($name, 'hidden', array('value' => $value));
+    }
+    
+    // var_dump($this->form_fields);
+    
+    // DO THE CALLBACK URLS
+    
+    // DO THE SHA-IN
+    
+    $form->setWidget('SHASIGN', 'hidden', array('value' => $this->calculateDigest()));
+    
+    return $form;
+  }
+  
+  public function calculateDigest($string = null)
+  {
+    if(is_null($string))
+    {
+      $string = $this->calculateStringToHash();
+    }
+    // var_dump($this->algorithm);
+    return strtoupper(hash($this->algorithm, $string));
+  }
+  
+  public function calculateStringToHash()
+  {
+    $string = '';
+    foreach($this->form_fields as $name => $value)
+    {
+      $string .= $name . '=' . $value . $this->sha_in;
+    }
+    return $string;
+  }
+  
+  private function prepareFields()
+  {
+    foreach(self::$ogone_fields as $group => $fields)
+    {
+      foreach($fields as $field)
+      {
+        $field_lower = strtolower($field);
+        if($this->$field)
+        {
+          $this->form_fields[$field] = (string) $this->$field;
+        }
+        elseif($this->$field_lower)
+        {
+          $this->form_fields[$field]  = (string) $this->$field_lower;
+        }
+        elseif('ORDERID' == $field)
+        {
+          $this->form_fields[$field] = (string) $this->id;
+        }
+      }
+    }
+    
+    ksort($this->form_fields);
+  }
+  
+  public function analyseFeedback($request)
+  {
+    $request = self::cleanRequest($request);
+    
+    $original_digest = $request['SHASIGN'];
+    unset($request['SHASIGN']);
+    
+    $string = '';
+    $feedback = '';
+    
+    foreach($request as $name => $value)
+    {
+      $entry = $name . '=' . $value;
+      $feedback .= $entry . "\r\n";
+      $string .= $entry . $this->sha_out;
+    }
+    
+    $this->ogone_feedback = $feedback;
+    
+    $new_digest = $this->calculateDigest($string);
+    
+    if($original_digest == $new_digest)
+    {
+      if(isset(self::$error_codes[$request['STATUS']]))
+      $this->status = self::$error_codes[$request['STATUS']];
+      $this->save(); 
+      return true;
+    }
+    else
+    {
+      $this->save(); 
+      echo "Invalid transaction " . $request['ORDERID'];
+      return false;
+    }
+    
+   
+  }
+  
+  private static function cleanRequest($request)
+  {
+    unset($request['page']); // CMSMS PARAM
+    
+    $vars = array();
+    
+    foreach($request as $name => $value)
+    {
+      $vars[strtoupper($name)] = $value;
+    }
+    
+    ksort($vars);
+    
+    return $vars; // TODO: ONLY KEEP VALID KEYS
+  }
+  
+  // STATUS: initialized, paid, refused, cancelled
   
   // DATABASE
     
@@ -200,13 +416,10 @@ class OgoneTransaction {
     
     $query = 'INSERT INTO '.cms_db_prefix().self::DB_NAME . '
       SET
-        created_at = ?,
-        updated_at = ?';
+        created_at = NOW(),
+        updated_at = NOW()';
 
-    $values = array(
-      time(),
-      time()
-    );        
+    $values = array();        
     
     foreach(self::$fields as $field)
     {
@@ -247,7 +460,7 @@ class OgoneTransaction {
     }
     else
     {
-      $values = array(time());
+      $values = array(date('Y-m-d H:i:s'));
     }
     
     foreach(self::$fields as $field)
