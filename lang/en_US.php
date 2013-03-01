@@ -11,6 +11,7 @@
       'form_DECLINEURL' => 'DECLINE URL',
       'form_EXCEPTIONURL' => 'EXCEPTION URL',
       'form_CANCELURL' => 'CANCEL URL',
+	  'form_env' => 'Ogone environment',
       'save' => 'Save',
     
     

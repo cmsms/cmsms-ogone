@@ -270,6 +270,7 @@ class OgoneTransaction {
     
     if($original_digest == $new_digest)
     {
+	  $this->status = $request['STATUS'];
       if(isset(self::$error_codes[$request['STATUS']]))
       $this->status = self::$error_codes[$request['STATUS']];
       $this->save(); 

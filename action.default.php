@@ -1,20 +1,13 @@
 <?php
 if (!cmsms()) exit;
 
-if(isset($params['prod']))
+$env = $this->GetPreference('env', 'test');
+
+if(('test' == $env) && !isset($params['transaction_id']))
 {
-  $env = 'prod';
-}
-else
-{
-  $env = 'test'; // By default, we are in TEST mode
-  
-  if(!isset($params['transaction_id']))
-  {
-    // $params['transaction_id'] = 7;
-    $test_transaction = OgoneTransaction::prepareTransaction('Ogone', time(), 10000);
-    $params['transaction_id'] = $test_transaction->getOrderId();
-  }
+  // $params['transaction_id'] = 7;
+  $test_transaction = OgoneTransaction::prepareTransaction('Ogone', time(), 10000);
+  $params['transaction_id'] = $test_transaction->getOrderId();
 }
 
 // vaR_dump($_SERVER);
@@ -32,6 +25,7 @@ if(isset($params['transaction_id']))
       $form = new CMSForm($this->getName(), '', 'default', $returnid);
       $form->setActionUrl($form_url);
       $form->setButtons(array('submit'));
+      $form->setLabel('submit', 'Pay');
       $form->setMethod('post');
       $transaction->PSPID = $this->GetPreference('pspid');
       $transaction->ACCEPTURL = $this->GetPreference('ACCEPTURL');
@@ -45,7 +39,7 @@ if(isset($params['transaction_id']))
         $transaction->CARDNO = '4111111111111111';
       }
       
-      $transaction->setPassphrase($this->GetPreference('sha-in-' . $env));
+      $transaction->setShaIn($this->GetPreference('sha-in-' . $env));
       $transaction->setAlgorithm($this->GetPreference('hash-algorithm'));
       $transaction->prepareForm($form);
       

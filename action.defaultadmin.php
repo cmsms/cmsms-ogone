@@ -10,6 +10,8 @@ $form->setLabel('submit', $this->lang('save'));
 
 $form->setWidget('pspid', 'text', array('preference' => 'pspid'));
 
+$form->setWidget('env', 'select', array('preference' => 'env', 'values' => array('test' => 'TEST', 'prod' => 'PROD')));
+
 $form->setWidget('hash-algorithm', 'select', array('preference' => 'hash-algorithm', 'values' => Ogone::getShaAvailable()));
 
 $form->setWidget('sha-in-test', 'static', array('preference' => 'sha-in-test'));

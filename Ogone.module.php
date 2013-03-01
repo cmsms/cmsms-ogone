@@ -22,7 +22,7 @@ class Ogone extends CMSModule
   
   public function GetName()             {  return 'Ogone';              }
   public function GetFriendlyName()     {  return 'Ogone';  }
-  public function GetVersion()          {  return '0.0.3';              }
+  public function GetVersion()          {  return '0.0.6';              }
   // public function GetHelp()          { return $this->Lang('help');       }
   public function GetAuthor()           {  return 'Jean-Christophe Cuvelier';    }
   public function GetAuthorEmail()      {  return 'cybertotophe@gmail.com';    }
