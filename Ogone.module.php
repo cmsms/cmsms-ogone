@@ -22,14 +22,14 @@ class Ogone extends CMSModule
   
   public function GetName()             {  return 'Ogone';              }
   public function GetFriendlyName()     {  return 'Ogone';  }
-  public function GetVersion()          {  return '0.0.6';              }
+  public function GetVersion()          {  return '0.0.7';              }
   // public function GetHelp()          { return $this->Lang('help');       }
   public function GetAuthor()           {  return 'Jean-Christophe Cuvelier';    }
   public function GetAuthorEmail()      {  return 'cybertotophe@gmail.com';    }
   // public function GetChangeLog()        { return $this->Lang('changelog');    }
   public function IsPluginModule()      {  return true;              }
   public function HasAdmin()            { return true;              }
-  public function GetAdminSection()     { return 'extensions';          }
+  public function GetAdminSection()     { return 'ecommerce';          }
   // public function GetAdminDescription()   { return $this->Lang('admindescription'); }
   public function VisibleToAdminUser()    {   return $this->CheckAccess();          }
   public function CheckAccess($perm = 'Manage Ogone')  {  return $this->CheckPermission($perm);  }
@@ -48,7 +48,7 @@ class Ogone extends CMSModule
    * to provide the API with documentation of what
    * that event does. This method wraps up a simple
    * return of the localized description.
-   * @param string Eventname
+   * @param string $eventname Event name
    * @return string Description for event 
    */
    
