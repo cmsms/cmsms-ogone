@@ -78,6 +78,11 @@ class Ogone extends CMSModule
   
   public function InitializeFrontend() {
     $this->RegisterModulePlugin();
+
+
+      // TODO REGISTER PARAMETERS
+      // pay_label
+      // transaction_id
   }
   
   public function SetupRoutes()
